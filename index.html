@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Jasa Isi Game</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">🎮</div>
+        Nexus
+      </a>
+
+      <!-- Page Navigation Slider - Centered in header -->
+      <div class="page-nav-slider" id="pageNavSlider">
+        <button class="page-nav-btn" onclick="navigateTo('home')" id="navHome">🏠 Home</button>
+        <button class="page-nav-btn active" onclick="navigateTo('game')" id="navGame">🎮 Isi Game</button>
+        <button class="page-nav-btn" onclick="navigateTo('hdd')" id="navHDD">💾 Bundling HDD</button>
+      </div>
+
+      <div class="header-nav">
+        <!-- Hamburger Menu Button (Mobile Only) -->
+        <button class="btn btn-ghost btn-sm mobile-only" onclick="toggleMobileNav()"
+          style="font-size:1.2rem;">☰</button>
+
+        <button class="btn btn-primary btn-sm cart-btn desktop-only" onclick="toggleCart()" style="display:none;">
+          🛒
+          <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Jasa Isi Game</h1>
+    <p>Hanya Game PC/Laptop dan PS4 HEN</p>
+
+    <div class="price-chips">
+      <div class="chip chip-5k">🎮 Kecil · Rp 5.000</div>
+      <div class="chip chip-10k">📀 10 GB · Rp 10.000</div>
+      <div class="chip chip-15k">💿 20 GB · Rp 15.000</div>
+      <div class="chip chip-20k">🗄️ 30 GB+ · Rp 20.000</div>
+      <div class="chip chip-30k">💾 100 GB+ · Rp 30.000</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="main-panel">
+      <div class="controls">
+        <div class="search-wrap">
+          <input class="search-input" id="searchInput" type="text" placeholder="🔍 Cari nama game..."
+            oninput="handleSearch()">
+        </div>
+        <select class="filter-select" id="priceFilter" onchange="applyFilters()">
+          <option value="">Semua Harga</option>
+          <option value="5000">Rp 5.000</option>
+          <option value="10000">Rp 10.000</option>
+          <option value="15000">Rp 15.000</option>
+          <option value="20000">Rp 20.000</option>
+          <option value="30000">Rp 30.000</option>
+        </select>
+        <select class="filter-select" id="locFilter" onchange="applyFilters()">
+          <option value="">Semua Lokasi</option>
+        </select>
+        <select class="filter-select" id="sizeTypeFilter" onchange="applyFilters()">
+          <option value="setup">Size Setup</option>
+          <option value="jadi">Size Jadi</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="adminModeToggle" onclick="toggleAdminMode()"
+          title="Toggle Admin Mode">👁️</button>
+      </div>
+
+      <div class="tabs" id="tabsContainer"></div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <span id="countInfo">Loading...</span>
+          <button class="btn btn-ghost btn-sm" onclick="addAllVisible()">+ Tambah Semua</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Judul Game</th>
+              <th id="sizeColumnHeader">Size Setup</th>
+              <th class="mobile-hide">Lokasi</th>
+              <th>Harga</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="gameTableBody"></tbody>
+        </table>
+        <div class="pagination" id="paginationContainer"></div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="cart-panel" id="cartPanel">
+        <div class="cart-title">🛒 Keranjang <span id="cartCount" style="font-size:.75rem;color:var(--text3)">(0
+            game)</span></div>
+        <div id="cartItems">
+          <div class="cart-empty">Keranjang kosong.<br>Pilih game dulu!</div>
+        </div>
+        <div class="cart-summary hidden" id="cartSummary">
+          <div class="cart-row"><span>Subtotal</span><span id="cartSubtotal">Rp 0</span></div>
+          <div class="cart-row"><span>Total Game</span><span id="cartGameCount">0</span></div>
+          <div class="cart-row"><span>Total Size</span><span id="cartTotalSize">—</span></div>
+          <div class="cart-total"><span>Total</span><span id="cartTotal">Rp 0</span></div>
+          <div style="margin-top:12px;margin-bottom:8px;">
+            <label style="font-size:.65rem;color:var(--text2);display:block;margin-bottom:4px;">TAMPILKAN SIZE:</label>
+            <select class="form-select" id="cartSizeType" onchange="updateCartSizeType()"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:.7rem;">
+              <option value="setup">Size Setup (Asli)</option>
+              <option value="jadi">Size Jadi (+Estimasi)</option>
+            </select>
+          </div>
+          <div class="cart-actions">
+            <button class="btn btn-success" onclick="exportCart()">📤 Kirim ke WhatsApp</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearCart()">🗑️ Kosongkan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin FAB - Desktop Only (moved to left) -->
+  <div class="admin-trigger desktop-only">
+    <button class="admin-fab" id="adminFab" onclick="openAdminLogin()" title="Admin Panel">⚙️</button>
+  </div>
+
+  <!-- Mobile/Universal Floating Cart Button (bottom right for all devices) -->
+  <div class="mobile-cart-float">
+    <button class="mobile-cart-fab" onclick="toggleCart()">
+      🛒
+      <span class="mobile-cart-badge" id="mobileCartBadge" style="display:none">0</span>
+    </button>
+  </div>
+
+  <!-- Admin Drawer -->
+  <div class="admin-drawer" id="adminDrawer">
+    <div class="admin-header">
+      <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem">Admin Panel</span>
+      <span class="admin-badge">ADMIN</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="closeAdmin()">✕</button>
+    </div>
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="openAddGame()">+ Tambah Game</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">📊 Export Excel</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">🔒 Logout</button>
+    </div>
+    <div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">STATISTIK DATABASE</div>
+    <div id="adminStats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;"></div>
+    <div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">SEMUA GAME <span id="editModeHint"
+        style="color:var(--warn)"> • Klik baris untuk edit/hapus</span></div>
+    <div id="adminGameList" style="max-height:calc(100vh - 300px);overflow-y:auto;"></div>
+  </div>
+
+  <!-- Modal Login -->
+  <div class="modal-overlay hidden" id="loginModal">
+    <div class="modal">
+      <div class="modal-title">🔐 Admin Login</div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="adminPass" type="password" placeholder="Masukkan password admin"
+          onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('loginModal')">Batal</button>
+        <button class="btn btn-primary" onclick="doLogin()">Masuk</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Add/Edit Game -->
+  <div class="modal-overlay hidden" id="gameModal">
+    <div class="modal">
+      <div class="modal-title" id="gameModalTitle">➕ Tambah Game</div>
+      <div class="form-group">
+        <label class="form-label">Judul Game</label>
+        <input class="form-input" id="gTitle" type="text" placeholder="Nama game...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Kategori</label>
+          <select class="form-input form-select" id="gCat">
+            <option value="PC Besar">PC Besar</option>
+            <option value="PC Cilik">PC Cilik</option>
+            <option value="PC Lawas 5k">PC Lawas 5k</option>
+            <option value="PS4">PS4</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Size</label>
+          <input class="form-input" id="gSize" type="text" placeholder="Contoh: 45 GB">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lokasi (Admin Only)</label>
+          <input class="form-input" id="gLoc" type="text" placeholder="Lokasi HDD/Storage">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Backup</label>
+          <input class="form-input" id="gBackup" type="text" placeholder="Backup location">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Size Jadi</label>
+        <input class="form-input" id="gSizeJadi" type="text" placeholder="Size setelah install">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('gameModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveGame()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div class="notif" id="notifContainer"></div>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="admin.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Navigation function
+    function navigateTo(page) {
+      // Update active button
+      document.querySelectorAll('.page-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      const navBtn = document.getElementById('nav' + page.charAt(0).toUpperCase() + page.slice(1));
+      if (navBtn) {
+        navBtn.classList.add('active');
+      }
+
+      // Navigate based on page
+      if (page === 'home') {
+        window.location.href = 'home.html';
+      } else if (page === 'game') {
+        window.location.href = 'index.html';
+      } else if (page === 'hdd') {
+        window.location.href = 'hdd-filling.html';
+      }
+    }
+
+    // Toggle mobile navigation
+    function toggleMobileNav() {
+      const slider = document.getElementById('pageNavSlider');
+      if (slider) {
+        slider.classList.toggle('mobile-active');
+      }
+    }
+
+    // Set active nav button based on current page
+    function setActiveNav() {
+      const currentPage = window.location.pathname.split('/').pop() || 'home.html';
+
+      document.querySelectorAll('.page-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (currentPage === 'home.html' || currentPage === '') {
+        document.getElementById('navHome').classList.add('active');
+      } else if (currentPage === 'index.html') {
+        document.getElementById('navGame').classList.add('active');
+      } else if (currentPage === 'hdd-filling.html') {
+        document.getElementById('navHDD').classList.add('active');
+      }
+    }
+
+    // Initialize on page load
+    setActiveNav();
+  </script>
+</body>
+
+</html>

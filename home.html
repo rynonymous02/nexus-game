@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — Jasa Isi Game</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+
+    .btn-lg {
+      padding: 12px 28px;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-hero-primary {
+      background: var(--accent);
+      color: #fff;
+      border: 2px solid var(--accent);
+    }
+
+    .btn-hero-primary:hover {
+      background: var(--accent2);
+      border-color: var(--accent2);
+      box-shadow: var(--glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-hero-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .btn-hero-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+      transform: translateY(-2px);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1400px;
+      margin: 64px auto;
+      padding: 0 32px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: var(--glow);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .feature-desc {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .stats-section {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 32px;
+      max-width: 1400px;
+      margin: 48px auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .how-it-works {
+      max-width: 1000px;
+      margin: 64px auto;
+      padding: 0 32px;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 48px;
+      background: linear-gradient(135deg, #fff, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .steps {
+      display: grid;
+      gap: 24px;
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: all 0.3s;
+    }
+
+    .step:hover {
+      border-color: var(--accent);
+      transform: translateX(8px);
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .step-content p {
+      font-size: 0.85rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .hero-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (min-width: 768px) {
+      .hero-image {
+        max-width: 50%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">🎮</div>
+        Nexus
+      </a>
+
+      <!-- Page Navigation Slider - Centered in header -->
+      <div class="page-nav-slider" id="pageNavSlider">
+        <button class="page-nav-btn active" onclick="navigateTo('home')" id="navHome">🏠 Home</button>
+        <button class="page-nav-btn" onclick="navigateTo('game')" id="navGame">🎮 Isi Game</button>
+        <button class="page-nav-btn" onclick="navigateTo('hdd')" id="navHDD">💾 Bundling HDD</button>
+      </div>
+
+      <div class="header-nav">
+        <!-- Hamburger Menu Button (Mobile Only) -->
+        <button class="btn btn-ghost btn-sm mobile-only" onclick="toggleMobileNav()"
+          style="font-size:1.2rem;">☰</button>
+
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <img src="images/home-image.png" alt="Nexus Jasa Isi Game" class="hero-image">
+    <h1>Selamat Datang di Nexus</h1>
+    <p>Jasa Isi Game PC & PS4 Terlengkap dan Termurah</p>
+
+    <div class="hero-cta">
+      <a href="index.html" class="btn btn-lg btn-hero-primary">
+        🎮 Beli Game Satuan
+      </a>
+      <a href="hdd-filling.html" class="btn btn-lg btn-hero-secondary">
+        💾 Beli HDD + Game
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Features Section -->
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <div class="feature-title">Ribuan Game</div>
+      <div class="feature-desc">Pilihan game PC dan PS4 terlengkap dari berbagai genre dan era. Dari game klasik hingga
+        terbaru!</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💾</div>
+      <div class="feature-title">Kapasitas Fleksibel</div>
+      <div class="feature-desc">Isi sesuai kebutuhan hardisk kamu. Hitung otomatis dengan tools Bundling HDD kami.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">💰</div>
+      <div class="feature-title">Harga Terjangkau</div>
+      <div class="feature-desc">Mulai dari Rp 5.000 saja! Harga transparan tanpa biaya tersembunyi.</div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Proses Cepat</div>
+      <div class="feature-desc">Proses pengisian cepat dan mudah. Langsung copy & paste tanpa Download</div>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-value">1000+</div>
+        <div class="stat-label">Total Game</div>
+      </div>
+      <div>
+        <div class="stat-value">500+</div>
+        <div class="stat-label">Lokasi HDD</div>
+      </div>
+      <div>
+        <div class="stat-value">5K</div>
+        <div class="stat-label">Harga Terendah</div>
+      </div>
+      <div>
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Kepuasan</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works Section -->
+  <div class="how-it-works">
+    <h2 class="section-title">Cara Pemesanan</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Pilih Game</h3>
+          <p>Buka halaman "Isi Game", cari dan pilih game yang kamu inginkan. Tambahkan ke keranjang dengan klik tombol
+            "+ Keranjang".</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Hitung Kapasitas (Opsional)</h3>
+          <p>Gunakan fitur "Bundling HDD" untuk menghitung kapasitas hardisk yang dibutuhkan dan memastikan semua game
+            muat.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Kirim Pesanan</h3>
+          <p>Klik "Export WhatsApp" di keranjang untuk mengirim daftar pesanan. Total harga akan dihitung otomatis.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3>Proses Pengisian</h3>
+          <p>Lakukan pembayaran dan jadwalkan pengisian game. Setelah selesai, game siap dimainkan!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile/Universal Floating Cart Button -->
+
+  <script>
+    // Navigation function
+    function navigateTo(page) {
+      // Update active button
+      document.querySelectorAll('.page-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      const navBtn = document.getElementById('nav' + page.charAt(0).toUpperCase() + page.slice(1));
+      if (navBtn) {
+        navBtn.classList.add('active');
+      }
+
+      // Navigate based on page
+      if (page === 'home') {
+        window.location.href = 'home.html';
+      } else if (page === 'game') {
+        window.location.href = 'index.html';
+      } else if (page === 'hdd') {
+        window.location.href = 'hdd-filling.html';
+      }
+    }
+
+    // Toggle mobile navigation
+    function toggleMobileNav() {
+      const slider = document.getElementById('pageNavSlider');
+      if (slider) {
+        slider.classList.toggle('mobile-active');
+      }
+    }
+
+    // Set active nav button based on current page
+    function setActiveNav() {
+      const currentPage = window.location.pathname.split('/').pop() || 'home.html';
+
+      document.querySelectorAll('.page-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (currentPage === 'home.html' || currentPage === '') {
+        document.getElementById('navHome').classList.add('active');
+      } else if (currentPage === 'index.html') {
+        document.getElementById('navGame').classList.add('active');
+      } else if (currentPage === 'hdd-filling.html') {
+        document.getElementById('navHDD').classList.add('active');
+      }
+    }
+
+    // Initialize on page load
+    setActiveNav();
+  </script>
+
+</body>
+
+</html>
