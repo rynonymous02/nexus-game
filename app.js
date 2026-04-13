@@ -10,6 +10,7 @@ let priceFilter = '';
 let locFilter = '';
 let sizeTypeFilter = 'setup'; // 'setup' or 'jadi'
 let cartSizeType = 'setup'; // Independent cart size type
+let specFilter = 0; // 0 = no filter, 1-6 = minimum spec star
 let currentPage = 1;
 const PAGE_SIZE = 25;
 let cart = [];
@@ -29,6 +30,7 @@ function initDB() {
         backup: g.backup || '',
         size_jadi: g.size_jadi || '',
         category: cat,
+        spec: g.spec || 0, // 0 = no spec, 1-6 = star rating
         ...(g.hypervisor ? { hypervisor: true } : {}),
       });
     }
@@ -170,6 +172,12 @@ function getFiltered() {
         if (!g.location.toLowerCase().includes(locFilter.toLowerCase())) return false;
       }
     }
+    // Spec filter: cascading logic - if spec <= specFilter, include it
+    // If specFilter is 0, don't filter
+    // Example: specFilter=3 shows spec 1,2,3 (not 4,5,6)
+    if (specFilter > 0) {
+      if (g.spec === 0 || g.spec > specFilter) return false;
+    }
     return true;
   });
 }
@@ -234,12 +242,25 @@ function renderTable() {
       // Show full location for admin, hidden for regular users
       const locationDisplay = getLocationDisplay(g.location, isAdmin);
       
+      // Build spec stars indicator with SVG
+      let specStars = '';
+      if (g.spec > 0) {
+        specStars = `<img src="images/star-0${g.spec}.svg" alt="${g.spec} stars" class="spec-stars-img" title="Spec Rating ${g.spec}/6 - Persyaratan minimum untuk menjalankan">`;
+      }
+      
       return `<tr>
         <td class="title-cell">
-          ${escHtml(g.title)}
-          ${g.hypervisor ? `<span class="hypervisor-badge">⚙️ Hypervisor</span>` : ''}
-          ${g.backup ? `<div class="sub">Backup: ${escHtml(g.backup)}</div>` : ''}
-          ${g.size_jadi && g.size_jadi.trim() !== '' ? `<div class="sub">Size jadi: ${escHtml(g.size_jadi)}</div>` : ''}
+          <div class="title-row">
+            <div class="title-content">
+              ${escHtml(g.title)}
+              ${g.hypervisor ? `<span class="hypervisor-badge" title="⚙️ Hypervisor - Memerlukan teknologi hypervisor untuk menjalankan game ini">⚙️ Hypervisor</span>` : ''}
+              ${g.backup ? `<div class="sub">Backup: ${escHtml(g.backup)}</div>` : ''}
+              ${g.size_jadi && g.size_jadi.trim() !== '' ? `<div class="sub">Size jadi: ${escHtml(g.size_jadi)}</div>` : ''}
+            </div>
+            <div class="title-spec">
+              ${specStars}
+            </div>
+          </div>
         </td>
         <td><span class="size-badge ${pc}">${getDisplaySize(g) || '—'}</span></td>
         <td class="mobile-hide"><span class="loc-tag">${locationDisplay}</span></td>
@@ -459,6 +480,7 @@ function applyFilters() {
   priceFilter = document.getElementById('priceFilter').value;
   locFilter = document.getElementById('locFilter').value;
   sizeTypeFilter = document.getElementById('sizeTypeFilter').value;
+  specFilter = parseInt(document.getElementById('specFilter').value) || 0;
   
   // Update header text based on size type
   const header = document.getElementById('sizeColumnHeader');
@@ -553,16 +575,18 @@ function renderAdminStats() {
 function renderAdminList() {
   const c = document.getElementById('adminGameList');
   const sorted = [...db].sort((a,b) => a.title.toLowerCase().localeCompare(b.title.toLowerCase()));
-  c.innerHTML = sorted.map(g => `
+  c.innerHTML = sorted.map(g => {
+    const specStars = g.spec > 0 ? '⭐'.repeat(g.spec) : '—';
+    return `
     <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">
       <div style="flex:1;min-width:0;">
         <div style="font-size:.7rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(g.title)}</div>
-        <div style="font-size:.62rem;color:var(--text3);">${g.category} · ${g.size||'Kecil'} · ${g.location||'—'}</div>
+        <div style="font-size:.62rem;color:var(--text3);">${g.category} · ${g.size||'Kecil'} · ${g.location||'—'} · ${specStars}</div>
       </div>
       <button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="openEditGame(${g.id})">✏️</button>
       <button class="btn btn-sm" style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);flex-shrink:0" onclick="deleteGame(${g.id})">✕</button>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // ===== ADD/EDIT GAME =====
@@ -575,6 +599,8 @@ function openAddGame() {
   document.getElementById('gBackup').value = '';
   document.getElementById('gSizeJadi').value = '';
   document.getElementById('gCat').value = 'Game PC';
+  document.getElementById('gSpec').value = 0;
+  document.getElementById('gHypervisor').checked = false;
   openModal('gameModal');
 }
 
@@ -589,6 +615,8 @@ function openEditGame(id) {
   document.getElementById('gBackup').value = g.backup;
   document.getElementById('gSizeJadi').value = g.size_jadi;
   document.getElementById('gCat').value = g.category;
+  document.getElementById('gSpec').value = g.spec || 0;
+  document.getElementById('gHypervisor').checked = g.hypervisor || false;
   openModal('gameModal');
 }
 
@@ -603,6 +631,8 @@ function saveGame() {
     backup: document.getElementById('gBackup').value.trim(),
     size_jadi: document.getElementById('gSizeJadi').value.trim(),
     category: document.getElementById('gCat').value,
+    spec: parseInt(document.getElementById('gSpec').value) || 0,
+    hypervisor: document.getElementById('gHypervisor').checked || false,
   };
   if (editGameId !== null) {
     const idx = db.findIndex(g => g.id === editGameId);

@@ -10,6 +10,29 @@
     rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .carousel-cta-btn {
+      display: inline-block;
+      margin-top: 10px;
+      margin-left: 50px;
+      padding: 6px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.7);
+      border-radius: 20px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+      backdrop-filter: blur(4px);
+    }
+
+    .carousel-cta-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      border-color: #fff;
+    }
+  </style>
 </head>
 
 <body>
@@ -54,6 +77,51 @@
     </div>
   </div>
 
+  <!-- Carousel -->
+  <div class="carousel-wrapper">
+    <div class="hdd-carousel">
+      <div class="hdd-carousel-track" id="carouselTrack">
+        <!-- Slide 1 -->
+        <div class="hdd-carousel-slide">
+          <img src="images/char02.png" alt="Karakter" class="carousel-char">
+          <div class="carousel-content">
+            <div class="carousel-title">Perhatikan Label <strong>Spec Rating</strong></div>
+            <div class="carousel-sub">
+              <strong>⭐⭐⭐⭐⭐⭐ (Bintang 6)</strong> = PC Besar, performa tinggi, grafis ultra<br>
+              <strong>⭐⭐ (Bintang 2)</strong> = PC Standar, bisa lancar dengan setting medium
+            </div>
+            <a href="spec.html" class="carousel-cta-btn">📊 Lihat Spec Guide →</a>
+          </div>
+          <img src="images/add_01.webp" alt="Info" class="carousel-add">
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="hdd-carousel-slide">
+          <img src="images/char01.webp" alt="Karakter" class="carousel-char">
+          <div class="carousel-content">
+            <div class="carousel-title">Perhatikan Label <strong>Hypervisor</strong></div>
+            <div class="carousel-sub">
+              <strong>Kekurangannya</strong> layer perlindungan komputer anda rentan terkena hack,<br>
+              <strong>Solusi</strong> agar lebih aman gunakan dual boot di drive terpisah (1 untuk kerja, 1 untuk game
+              hypervisor).
+            </div>
+          </div>
+          <img src="images/add_01.webp" alt="Warning" class="carousel-add">
+        </div>
+      </div>
+
+      <!-- Nav Buttons -->
+      <button class="carousel-btn prev" onclick="carouselPrev()" aria-label="Previous">‹</button>
+      <button class="carousel-btn next" onclick="carouselNext()" aria-label="Next">›</button>
+
+      <!-- Dots -->
+      <div class="carousel-dots" id="carouselDots">
+        <button class="carousel-dot active" onclick="carouselGoTo(0)" id="dot0"></button>
+        <button class="carousel-dot" onclick="carouselGoTo(1)" id="dot1"></button>
+      </div>
+    </div>
+  </div>
+
   <div class="app">
     <div class="main-panel">
       <div class="controls">
@@ -75,6 +143,16 @@
         <select class="filter-select" id="sizeTypeFilter" onchange="applyFilters()">
           <option value="setup">Size Setup</option>
           <option value="jadi">Size Jadi</option>
+        </select>
+        <select class="filter-select" id="specFilter" onchange="applyFilters()"
+          title="Filter berdasarkan spec rating. Memilih ⭐⭐⭐⭐⭐⭐ (6) akan menampilkan semua rating 1-6. Memilih ⭐ (1) hanya menampilkan rating 1.">
+          <option value="0">Semua Spec</option>
+          <option value="1">⭐ 1</option>
+          <option value="2">⭐⭐ 2</option>
+          <option value="3">⭐⭐⭐ 3</option>
+          <option value="4">⭐⭐⭐⭐ 4</option>
+          <option value="5">⭐⭐⭐⭐⭐ 5</option>
+          <option value="6">⭐⭐⭐⭐⭐⭐ 6</option>
         </select>
         <button class="btn btn-ghost btn-sm" id="adminModeToggle" onclick="toggleAdminMode()"
           title="Toggle Admin Mode">👁️</button>
@@ -217,6 +295,28 @@
         <label class="form-label">Size Jadi</label>
         <input class="form-input" id="gSizeJadi" type="text" placeholder="Size setelah install">
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Spec Rating (Optional)</label>
+          <select class="form-input form-select" id="gSpec"
+            title="Pilih rating spek dari 1-6 bintang. 0 = tidak ada spek.">
+            <option value="0">Tidak ada spec</option>
+            <option value="1">⭐ 1</option>
+            <option value="2">⭐⭐ 2</option>
+            <option value="3">⭐⭐⭐ 3</option>
+            <option value="4">⭐⭐⭐⭐ 4</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5</option>
+            <option value="6">⭐⭐⭐⭐⭐⭐ 6</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="gHypervisor" style="width:16px;height:16px;cursor:pointer;">
+            <span>⚙️ Hypervisor</span>
+          </label>
+          <div style="font-size:.65rem;color:var(--text3);margin-top:2px;">Memerlukan teknologi hypervisor</div>
+        </div>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('gameModal')">Batal</button>
         <button class="btn btn-primary" onclick="saveGame()">Simpan</button>
@@ -277,6 +377,106 @@
 
     // Initialize on page load
     setActiveNav();
+
+    // ===== HDD CAROUSEL FUNCTIONALITY =====
+    let currentCarouselIndex = 0;
+
+    function initCarousel() {
+      const track = document.getElementById('hddCarouselTrack');
+      const dotsContainer = document.getElementById('carouselDots');
+      if (!track || !dotsContainer) return;
+
+      const items = track.querySelectorAll('.carousel-item');
+      const itemCount = items.length;
+
+      // Create dots
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < itemCount; i++) {
+        const dot = document.createElement('div');
+        dot.className = `carousel-dot ${i === 0 ? 'active' : ''}`;
+        dot.onclick = () => scrollToItem(i);
+        dotsContainer.appendChild(dot);
+      }
+
+      updateCarouselDots();
+    }
+
+    function scrollCarousel(direction) {
+      const track = document.getElementById('hddCarouselTrack');
+      if (!track) return;
+
+      const items = track.querySelectorAll('.carousel-item');
+      const itemCount = items.length;
+      const itemWidth = items[0].offsetWidth + 12; // width + gap
+
+      currentCarouselIndex = (currentCarouselIndex + direction + itemCount) % itemCount;
+      track.scrollLeft = currentCarouselIndex * itemWidth;
+      updateCarouselDots();
+    }
+
+    function scrollToItem(index) {
+      const track = document.getElementById('hddCarouselTrack');
+      if (!track) return;
+
+      const items = track.querySelectorAll('.carousel-item');
+      const itemWidth = items[0].offsetWidth + 12; // width + gap
+
+      currentCarouselIndex = index;
+      track.scrollLeft = currentCarouselIndex * itemWidth;
+      updateCarouselDots();
+    }
+
+    function updateCarouselDots() {
+      const dots = document.querySelectorAll('.carousel-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentCarouselIndex);
+      });
+    }
+
+    // Initialize carousel when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCarousel);
+    } else {
+      initCarousel();
+    }
+
+    // ===== SLIDE CAROUSEL FUNCTIONALITY (for hero carousel) =====
+    let currentSlideIndex = 0;
+
+    function carouselPrev() {
+      const track = document.getElementById('carouselTrack');
+      if (!track) return;
+      const slides = track.querySelectorAll('.hdd-carousel-slide');
+      const totalSlides = slides.length;
+      currentSlideIndex = (currentSlideIndex - 1 + totalSlides) % totalSlides;
+      updateSlideCarousel();
+    }
+
+    function carouselNext() {
+      const track = document.getElementById('carouselTrack');
+      if (!track) return;
+      const slides = track.querySelectorAll('.hdd-carousel-slide');
+      const totalSlides = slides.length;
+      currentSlideIndex = (currentSlideIndex + 1) % totalSlides;
+      updateSlideCarousel();
+    }
+
+    function carouselGoTo(index) {
+      currentSlideIndex = index;
+      updateSlideCarousel();
+    }
+
+    function updateSlideCarousel() {
+      const track = document.getElementById('carouselTrack');
+      if (!track) return;
+      track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+
+      // Update dots
+      const dots = document.querySelectorAll('.carousel-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlideIndex);
+      });
+    }
   </script>
 </body>
 
