@@ -318,3 +318,37 @@ tbody td{padding:10px 16px;font-size:.75rem;}
     text-align: left;
   }
 }
+
+/* ===== Desktop/Mobile price & cart label visibility ===== */
+.price-mobile { display: none; }
+.price-desktop { display: inline; }
+.cart-label-mobile { display: none; }
+.cart-label-desktop { display: inline; }
+
+/* SVG icon alignment di dalam tombol */
+.cart-label-mobile svg { display: block; }
+
+@media(max-width:900px){
+  /* Harga: tampilkan format singkat (10k), sembunyikan format panjang (10.000) */
+  .price-mobile { display: inline; }
+  .price-desktop { display: none; }
+
+  /* Tombol keranjang: icon SVG saja di mobile */
+  .cart-label-mobile { display: flex; align-items: center; justify-content: center; }
+  .cart-label-desktop { display: none; }
+
+  /* Kolom keranjang lebih rapat, tidak ada padding ekstra */
+  table td:last-child { padding-left: 4px; padding-right: 8px; }
+
+  /* Tombol compact: ukuran pas untuk icon SVG */
+  .add-btn {
+    padding: 6px 7px;
+    min-width: 30px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+}

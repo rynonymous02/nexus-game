@@ -150,6 +150,7 @@ function getPriceTextClass(price){
 }
 
 function formatRp(n){ return 'Rp '+n.toLocaleString('id-ID'); }
+function formatRpMobile(n){ return (n/1000)+'k'; }
 
 // ===== FILTER/SEARCH =====
 function getFiltered() {
@@ -264,8 +265,8 @@ function renderTable() {
         </td>
         <td><span class="size-badge ${pc}">${getDisplaySize(g) || '—'}</span></td>
         <td class="mobile-hide"><span class="loc-tag">${locationDisplay}</span></td>
-        <td><span class="price-tag ${ptc}">${formatRp(price)}</span></td>
-        <td><button class="add-btn ${inCart?'added':''}" onclick="toggleCart_item(${g.id})">${inCart?'✓ Ditambah':'+ Keranjang'}</button></td>
+        <td><span class="price-tag ${ptc}"><span class="price-desktop">${formatRp(price)}</span><span class="price-mobile">${formatRpMobile(price)}</span></span></td>
+        <td><button class="add-btn ${inCart?'added':''}" onclick="toggleCart_item(${g.id})"><span class="cart-label-desktop">${inCart?'✓ Ditambah':'+ Keranjang'}</span><span class="cart-label-mobile">${inCart?`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:`<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`}</span></button></td>
       </tr>`;
     }).join('');
   }
