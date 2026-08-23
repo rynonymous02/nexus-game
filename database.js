@@ -525,6 +525,9 @@ const RAW_DB = {
     { "title": "Forza Horizon 6", "size": "61 GB", "location": "Stradeon", "backup": "", "size_jadi": "", "spec": 4 },
     { "title": "Solo Leveling - Arise Overdrive", "size": "25 GB", "location": "Stradeon", "backup": "", "size_jadi": "", "spec": 4 },
     { "title": "Digimon Story - Time Stranger", "size": "22 GB", "location": "Stradeon", "backup": "", "size_jadi": "", "spec": 4 },
+    { "title": "Assassin Creed Black Flag Resynced", "size": "42 GB", "location": "Teratorn", "backup": "", "size_jadi": "" , "spec": 5 },
+    { "title": "Madden NFL 20", "size": "24 GB", "location": "Teratorn", "backup": "", "size_jadi": "", "spec": 3 },
+    { "title": "Halo Campaign Evolved", "size": "64 GB", "location": "Teratorn", "backup": "", "size_jadi": "", "spec": 5 },
 
   ],
   "PS4": [
@@ -591,7 +594,7 @@ const RAW_DB = {
     { "title": "Watch Dog Legion - Bloodline DLC", "size": "46 GB", "location": "SaveStation_01", "backup": "", "size_jadi": "" },
     { "title": "Upin dan Ipin Universe", "size": "6 GB", "location": "Pantheon", "backup": "", "size_jadi": "" },
     { "title": "Need For Seped - Heat", "size": "", "location": "", "backup": "", "size_jadi": "" },
-
+    
   ]
 };
 
