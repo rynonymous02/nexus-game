@@ -154,11 +154,16 @@ function formatRpMobile(n){ return (n/1000)+'k'; }
 
 // ===== FILTER/SEARCH =====
 function getFiltered() {
+  const isAdmin = typeof isAdminMode === 'function' ? isAdminMode() : false;
   return db.filter(g => {
     if (currentTab && g.category !== currentTab) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      if (!g.title.toLowerCase().includes(q) && !g.location.toLowerCase().includes(q)) return false;
+      if (isAdmin) {
+        if (!g.title.toLowerCase().includes(q) && !(g.location && g.location.toLowerCase().includes(q))) return false;
+      } else {
+        if (!g.title.toLowerCase().includes(q)) return false;
+      }
     }
     if (priceFilter) {
       const p = getPrice(g);
@@ -167,10 +172,10 @@ function getFiltered() {
     if (locFilter) {
       // For non-admin users, if "tersedia" is selected, show all games with location
       if (locFilter === 'tersedia') {
-        if (!g.location) return false;
+        if (!g.location || !g.location.trim()) return false;
       } else {
         // For admin users, filter by actual location value
-        if (!g.location.toLowerCase().includes(locFilter.toLowerCase())) return false;
+        if (!g.location || !g.location.toLowerCase().includes(locFilter.toLowerCase())) return false;
       }
     }
     // Spec filter: cascading logic - if spec <= specFilter, include it
@@ -199,21 +204,35 @@ function setTab(t) { currentTab = t; currentPage = 1; renderAll(); }
 
 // ===== LOCATION FILTER POPULATE =====
 function populateLocFilter() {
-  const isAdmin = isAdminAuthenticated();
-  const locs = [...new Set(db.map(g => g.location).filter(Boolean))].sort();
+  const isAdmin = typeof isAdminMode === 'function' ? isAdminMode() : false;
+  const locs = [...new Set(db.map(g => (g.location || '').trim()).filter(Boolean))].sort();
   const sel = document.getElementById('locFilter');
+  if (!sel) return;
   
   // Always show location filter
-  sel.parentElement.style.display = 'block';
+  if (sel.parentElement) sel.parentElement.style.display = 'flex';
   
   if (isAdmin) {
     // Show full location details for admin
+    const prevVal = locFilter;
     sel.innerHTML = '<option value="">Semua Lokasi</option>' +
       locs.map(l => `<option value="${l}">${l}</option>`).join('');
+    if (locs.includes(prevVal)) {
+      sel.value = prevVal;
+    } else {
+      sel.value = '';
+      locFilter = '';
+    }
   } else {
     // For non-admin users, show simplified location options
     sel.innerHTML = '<option value="">Semua Lokasi</option>' +
       '<option value="tersedia">Tersedia</option>';
+    if (locFilter === 'tersedia') {
+      sel.value = 'tersedia';
+    } else {
+      sel.value = '';
+      locFilter = '';
+    }
   }
 }
 
@@ -228,11 +247,11 @@ function renderTable() {
 
   document.getElementById('countInfo').textContent = `${total} game ditemukan`;
 
-  const isAdmin = isAdminAuthenticated();
+  const isAdmin = typeof isAdminMode === 'function' ? isAdminMode() : false;
   const tbody = document.getElementById('gameTableBody');
   
   if (page.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="no-results">Tidak ada game yang ditemukan 😢</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="no-results">Tidak ada game yang ditemukan 😢</td></tr>`;
   } else {
     tbody.innerHTML = page.map(g => {
       const price = getPrice(g);
@@ -240,8 +259,10 @@ function renderTable() {
       const ptc = getPriceTextClass(price);
       const inCart = cart.some(c => c.id === g.id);
       
-      // Show full location for admin, hidden for regular users
-      const locationDisplay = getLocationDisplay(g.location, isAdmin);
+      // Show full location for admin, 'Tersedia' for regular users
+      const locationDisplay = typeof getLocationDisplay === 'function'
+        ? getLocationDisplay(g.location, isAdmin)
+        : (isAdmin ? (g.location || '—') : (g.location ? 'Tersedia' : '—'));
       
       // Build spec stars indicator with SVG
       let specStars = '';
@@ -255,8 +276,9 @@ function renderTable() {
             <div class="title-content">
               ${escHtml(g.title)}
               ${g.hypervisor ? `<span class="hypervisor-badge" title="⚙️ Hypervisor - Memerlukan teknologi hypervisor untuk menjalankan game ini">⚙️ Hypervisor</span>` : ''}
-              ${g.backup ? `<div class="sub">Backup: ${escHtml(g.backup)}</div>` : ''}
+              ${isAdmin && g.backup ? `<div class="sub">Backup: ${escHtml(g.backup)}</div>` : ''}
               ${g.size_jadi && g.size_jadi.trim() !== '' ? `<div class="sub">Size jadi: ${escHtml(g.size_jadi)}</div>` : ''}
+              <div class="mobile-loc-info"><span class="loc-tag">${locationDisplay}</span></div>
             </div>
             <div class="title-spec">
               ${specStars}
@@ -387,6 +409,14 @@ function renderCart() {
   if (sizeDisplay) {
     sizeDisplay.textContent = totalSize > 0 ? `${totalSize} GB` : '—';
   }
+
+  // Update visibility of admin cart locations button
+  const btnCartLocations = document.getElementById('btnCartLocations');
+  if (btnCartLocations) {
+    const isMode = typeof isAdminMode === 'function' && isAdminMode();
+    btnCartLocations.style.display = isMode ? 'flex' : 'none';
+  }
+
   summary.classList.remove('hidden');
 }
 
@@ -400,6 +430,142 @@ function clearCart() {
 function toggleCart() {
   const panel = document.getElementById('cartPanel');
   panel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ===== CART FILE LOCATIONS (ADMIN MODE) =====
+function showCartLocations() {
+  if (!cart || cart.length === 0) {
+    showNotif('Keranjang masih kosong!', 'error');
+    return;
+  }
+
+  // Group games by location
+  const groups = {};
+  cart.forEach(g => {
+    const loc = (g.location && g.location.trim()) ? g.location.trim() : 'Lokasi Belum Ditentukan';
+    if (!groups[loc]) groups[loc] = [];
+    groups[loc].push(g);
+  });
+
+  const sortedLocs = Object.keys(groups).sort((a, b) => {
+    if (a === 'Lokasi Belum Ditentukan') return 1;
+    if (b === 'Lokasi Belum Ditentukan') return -1;
+    return a.localeCompare(b);
+  });
+
+  const subtitle = document.getElementById('cartLocSubtitle');
+  if (subtitle) {
+    subtitle.textContent = `Total ${cart.length} game dikelompokkan dalam ${sortedLocs.length} lokasi harddisk.`;
+  }
+
+  const container = document.getElementById('cartLocationsList');
+  if (container) {
+    container.innerHTML = sortedLocs.map(loc => {
+      const games = groups[loc];
+      let totalGB = 0;
+      games.forEach(g => {
+        const gb = parseGB(typeof getCartDisplaySize === 'function' ? getCartDisplaySize(g) : g.size);
+        if (gb !== null) totalGB += gb;
+      });
+      const sizeStr = totalGB > 0 ? `${Math.round(totalGB * 10) / 10} GB` : '—';
+      const isUnassigned = loc === 'Lokasi Belum Ditentukan';
+
+      return `
+        <div class="loc-group-card">
+          <div class="loc-group-header">
+            <div class="loc-group-title">
+              <span>${isUnassigned ? '❓' : '🖴'}</span>
+              <span>${escHtml(loc)}</span>
+            </div>
+            <span class="loc-group-badge">${games.length} game · ${sizeStr}</span>
+          </div>
+          <div class="loc-group-items">
+            ${games.map((g, idx) => {
+              const displaySize = (typeof getCartDisplaySize === 'function' ? getCartDisplaySize(g) : g.size) || '—';
+              return `
+                <div class="loc-game-item">
+                  <div style="flex:1;min-width:0;padding-right:8px;">
+                    <div class="loc-game-name">${idx + 1}. ${escHtml(g.title)}</div>
+                    ${g.backup ? `<div class="loc-game-sub">Backup: ${escHtml(g.backup)}</div>` : ''}
+                  </div>
+                  <span class="loc-game-size">${displaySize}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  openModal('cartLocationsModal');
+}
+
+function copyCartLocationsText() {
+  if (!cart || cart.length === 0) return;
+  
+  const groups = {};
+  cart.forEach(g => {
+    const loc = (g.location && g.location.trim()) ? g.location.trim() : 'Lokasi Belum Ditentukan';
+    if (!groups[loc]) groups[loc] = [];
+    groups[loc].push(g);
+  });
+
+  const sortedLocs = Object.keys(groups).sort((a, b) => {
+    if (a === 'Lokasi Belum Ditentukan') return 1;
+    if (b === 'Lokasi Belum Ditentukan') return -1;
+    return a.localeCompare(b);
+  });
+
+  let text = `📂 DAFTAR COPY GAME BERDASARKAN LOKASI HDD\n`;
+  text += `Total: ${cart.length} game (${sortedLocs.length} lokasi)\n`;
+  text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+  sortedLocs.forEach((loc) => {
+    const games = groups[loc];
+    let totalGB = 0;
+    games.forEach(g => {
+      const gb = parseGB(typeof getCartDisplaySize === 'function' ? getCartDisplaySize(g) : g.size);
+      if (gb !== null) totalGB += gb;
+    });
+    const sizeStr = totalGB > 0 ? ` (~${Math.round(totalGB * 10) / 10} GB)` : '';
+
+    text += `🖴 [${loc.toUpperCase()}] — ${games.length} game${sizeStr}\n`;
+    games.forEach((g, i) => {
+      const s = (typeof getCartDisplaySize === 'function' ? getCartDisplaySize(g) : g.size) || '—';
+      const b = g.backup ? ` [Backup: ${g.backup}]` : '';
+      text += `   ${i + 1}. ${g.title} (${s})${b}\n`;
+    });
+    text += `\n`;
+  });
+
+  text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showNotif('Daftar lokasi disalin ke clipboard!', 'success');
+    }).catch(() => {
+      fallbackCopyText(text);
+    });
+  } else {
+    fallbackCopyText(text);
+  }
+}
+
+function fallbackCopyText(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showNotif('Daftar lokasi disalin ke clipboard!', 'success');
+  } catch (err) {
+    showNotif('Gagal menyalin teks ke clipboard', 'error');
+  }
+  document.body.removeChild(ta);
 }
 
 // ===== EXPORT FUNCTIONS =====
@@ -500,11 +666,53 @@ function updateCartSizeType() {
   showNotif(`Size keranjang diubah ke ${cartSizeType === 'setup' ? 'Setup' : 'Jadi'}`, 'success');
 }
 
+// ===== ADMIN UI & HELPERS =====
+let pendingAdminAction = null; // 'drawer' | 'toggle'
+
+function updateAdminUI() {
+  const isAuth = typeof isAdminAuthenticated === 'function' && isAdminAuthenticated();
+  const isMode = typeof isAdminMode === 'function' && isAdminMode();
+  
+  const adminFab = document.getElementById('adminFab');
+  const adminModeToggle = document.getElementById('adminModeToggle');
+  
+  if (adminFab) {
+    if (isAuth) {
+      adminFab.classList.add('active');
+      adminFab.textContent = '🛡️';
+      adminFab.title = 'Admin Panel (Kelola Game)';
+    } else {
+      adminFab.classList.remove('active');
+      adminFab.textContent = '⚙️';
+      adminFab.title = 'Admin Panel (Login)';
+    }
+  }
+  
+  if (adminModeToggle) {
+    if (isMode) {
+      adminModeToggle.classList.add('active');
+      adminModeToggle.textContent = '👁️';
+      adminModeToggle.title = 'Admin Mode: ON (Letak Asli ditampilkan) - Klik untuk matikan';
+    } else {
+      adminModeToggle.classList.remove('active');
+      adminModeToggle.textContent = '👁️';
+      adminModeToggle.title = 'Admin Mode: OFF (Hanya Tersedia) - Klik untuk aktifkan';
+    }
+  }
+
+  const btnCartLocations = document.getElementById('btnCartLocations');
+  if (btnCartLocations) {
+    btnCartLocations.style.display = isMode ? 'flex' : 'none';
+  }
+}
+
+
 // ===== ADMIN FUNCTIONS =====
 function openAdminLogin() {
-  if (isAdminAuthenticated()) {
+  if (typeof isAdminAuthenticated === 'function' && isAdminAuthenticated()) {
     openAdminDrawer();
   } else {
+    pendingAdminAction = 'drawer';
     document.getElementById('adminPass').value = '';
     openModal('loginModal');
     setTimeout(() => document.getElementById('adminPass').focus(), 100);
@@ -513,14 +721,21 @@ function openAdminLogin() {
 
 function doLogin() {
   const pass = document.getElementById('adminPass').value;
-  const result = loginAdmin(pass);
+  const result = typeof loginAdmin === 'function' ? loginAdmin(pass) : { success: false, message: 'Admin module missing' };
   if (result.success) {
     closeModal('loginModal');
-    document.getElementById('adminFab').classList.add('active');
-    document.getElementById('adminFab').textContent = '🛡️';
-    document.getElementById('adminModeToggle').textContent = '👁️';
-    openAdminDrawer();
-    showNotif('Login admin berhasil!', 'success');
+    if (typeof setAdminMode === 'function') {
+      setAdminMode(true);
+    }
+    updateAdminUI();
+    populateLocFilter();
+    renderAll();
+    
+    if (pendingAdminAction === 'drawer') {
+      openAdminDrawer();
+    }
+    pendingAdminAction = null;
+    showNotif('Login admin berhasil! Letak game asli ditampilkan', 'success');
   } else {
     showNotif(result.message, 'error');
     document.getElementById('adminPass').value = '';
@@ -539,14 +754,15 @@ function closeAdmin() {
 }
 
 function logout() {
-  logoutAdmin();
-  document.getElementById('adminFab').classList.remove('active');
-  document.getElementById('adminFab').textContent = '⚙️';
-  document.getElementById('adminModeToggle').textContent = '👁️';
+  if (typeof logoutAdmin === 'function') {
+    logoutAdmin();
+  }
   closeAdmin();
+  locFilter = '';
+  updateAdminUI();
   populateLocFilter();
   renderAll();
-  showNotif('Logged out', 'error');
+  showNotif('Admin logged out (Admin mode off)', 'error');
 }
 
 function renderAdminStats() {
@@ -692,19 +908,28 @@ function renderAll() {
 
 // ===== ADMIN MODE TOGGLE =====
 function toggleAdminMode() {
-  if (isAdminAuthenticated()) {
-    // Logout admin mode
-    logoutAdmin();
-    document.getElementById('adminFab').classList.remove('active');
-    document.getElementById('adminFab').textContent = '⚙️';
-    document.getElementById('adminModeToggle').textContent = '👁️';
-    showNotif('Admin mode dimatikan', 'error');
+  if (typeof isAdminAuthenticated === 'function' && isAdminAuthenticated()) {
+    // Already authenticated, toggle mode between ON and OFF
+    const currentMode = typeof isAdminMode === 'function' ? isAdminMode() : false;
+    const newMode = !currentMode;
+    if (typeof setAdminMode === 'function') {
+      setAdminMode(newMode);
+    }
+    updateAdminUI();
+    populateLocFilter();
+    renderAll();
+    if (newMode) {
+      showNotif('Admin mode aktif: Letak game asli ditampilkan', 'success');
+    } else {
+      showNotif('Admin mode nonaktif: Hanya tampil "Tersedia"', 'error');
+    }
   } else {
-    // Open login modal
-    openAdminLogin();
+    // Not authenticated, request login
+    pendingAdminAction = 'toggle';
+    document.getElementById('adminPass').value = '';
+    openModal('loginModal');
+    setTimeout(() => document.getElementById('adminPass').focus(), 100);
   }
-  populateLocFilter();
-  renderAll();
 }
 
 function escHtml(s) {
@@ -714,17 +939,11 @@ function escHtml(s) {
 // ===== INIT APPLICATION =====
 function initApp() {
   initDB();
+  updateAdminUI();
   populateLocFilter();
   renderAll();
   renderCart();
-  
-  // Check admin status on load
-  if (isAdminAuthenticated()) {
-    document.getElementById('adminFab').classList.add('active');
-    document.getElementById('adminFab').textContent = '🛡️';
-    document.getElementById('adminModeToggle').textContent = '👁️';
-  }
 }
 
 // Start the application
-initApp();
+initApp();

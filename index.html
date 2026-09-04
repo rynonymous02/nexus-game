@@ -203,6 +203,7 @@
           </div>
           <div class="cart-actions">
             <button class="btn btn-success" onclick="exportCart()">📤 Kirim ke WhatsApp</button>
+            <button class="btn btn-admin-loc" id="btnCartLocations" onclick="showCartLocations()" style="display:none;">📂 Lihat Lokasi File</button>
             <button class="btn btn-ghost btn-sm" onclick="clearCart()">🗑️ Kosongkan</button>
           </div>
         </div>
@@ -240,6 +241,22 @@
     <div style="font-size:.72rem;color:var(--text2);margin-bottom:8px">SEMUA GAME <span id="editModeHint"
         style="color:var(--warn)"> • Klik baris untuk edit/hapus</span></div>
     <div id="adminGameList" style="max-height:calc(100vh - 300px);overflow-y:auto;"></div>
+  </div>
+
+  <!-- Modal Cart Locations (Admin Only) -->
+  <div class="modal-overlay hidden" id="cartLocationsModal">
+    <div class="modal" style="max-width:560px;max-height:88vh;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="modal-title" style="margin-bottom:0;">📂 Lokasi File Game</div>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('cartLocationsModal')">✕</button>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text3);margin-bottom:14px;" id="cartLocSubtitle">Dikelompokkan berdasarkan lokasi harddisk untuk mempermudah copy game.</div>
+      <div id="cartLocationsList" style="overflow-y:auto;max-height:calc(88vh - 190px);padding-right:4px;"></div>
+      <div class="modal-actions" style="margin-top:16px;display:flex;gap:8px;justify-content:space-between;align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="copyCartLocationsText()">📋 Salin Daftar</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('cartLocationsModal')">Tutup</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Login -->
