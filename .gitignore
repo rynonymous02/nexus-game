@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Offline Dataset Manager (Local-only dataset tool, do not deploy to Vercel/GitHub)
+offline-dataset/
+
+# Environment files
+.env
+.env.local
+
+# OS files
+Thumbs.db
+.DS_Store
